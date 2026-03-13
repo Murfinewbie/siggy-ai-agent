@@ -25,7 +25,7 @@ export default {
 
     try {
 
-      const { prompt } = await request.json()
+      const { prompt } = (await request.json()) as { prompt: string }
 
       if (!prompt) {
         return new Response("Prompt is required", {
