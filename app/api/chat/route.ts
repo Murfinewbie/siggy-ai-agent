@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server";
 
-export async function POST(req: Request) {
+type ChatRequest = {
+  messages: { role: string; content: string }[];
+  personality?: string;
+};
 
+export async function POST(req: Request) {
   try {
 
-    const { messages, personality } = await req.json();
+    const body = (await req.json()) as ChatRequest;
+
+    const { messages, personality } = body;
 
     const systemPrompt = `
 You are Siggy, a cute and playful AI companion that lives inside RitualNet.
@@ -58,8 +64,6 @@ You are Siggy, a small AI spirit exploring RitualNet.
 
     const data = await response.json();
 
-    console.log("GROQ RESPONSE:", data);
-
     const reply =
       data?.choices?.[0]?.message?.content ||
       "Hmm... Siggy tried to answer but the network glitched.";
@@ -75,5 +79,4 @@ You are Siggy, a small AI spirit exploring RitualNet.
     });
 
   }
-
 }
