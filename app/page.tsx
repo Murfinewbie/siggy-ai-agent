@@ -109,7 +109,7 @@ export default function Home() {
         })
       });
 
-      const data = await res.json();
+      const data: any = await res.json();
 
       setIsTyping(false);
 
@@ -267,7 +267,7 @@ export default function Home() {
         })
       });
 
-      const data = await res.json();
+      const data: any = await res.json();
 
       setIsTyping(false);
 
