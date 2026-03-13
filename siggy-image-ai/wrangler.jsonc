@@ -9,11 +9,11 @@
     "nodejs_compat"
   ],
 
-  "observability": {
-    "enabled": true
-  },
-
   "ai": {
     "binding": "AI"
+  },
+
+  "observability": {
+    "enabled": true
   }
 }

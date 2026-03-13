@@ -1,3 +1,7 @@
+export interface Env {
+  AI: any
+}
+
 export default {
 
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -25,7 +29,9 @@ export default {
 
     try {
 
-      const { prompt } = (await request.json()) as { prompt: string }
+      // ===== GET PROMPT =====
+      const body = await request.json() as { prompt: string }
+      const { prompt } = body
 
       if (!prompt) {
         return new Response("Prompt is required", {
@@ -45,7 +51,7 @@ export default {
       )
 
       // ===== RETURN IMAGE =====
-      return new Response(image, {
+      return new Response(image as BodyInit, {
         headers: {
           "Content-Type": "image/png",
           "Access-Control-Allow-Origin": "*",
@@ -55,6 +61,8 @@ export default {
       })
 
     } catch (error) {
+
+      console.error("IMAGE ERROR:", error)
 
       return new Response("Image generation failed", {
         status: 500,
