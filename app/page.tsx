@@ -234,7 +234,7 @@ export default function Home() {
       {/* SIDEBAR */}
 
       <div
-        className="fixed left-0 top-0 h-screen w-[16%] bg-cover bg-center z-40"
+         className="hidden md:block fixed left-0 top-0 h-screen w-[16%] bg-cover bg-center z-40"
         style={{
           backgroundImage: "url('/sidebar.png')"
         }}
@@ -264,7 +264,7 @@ export default function Home() {
 
       {/* CHAT */}
 
-      <div className="ml-[16%] w-[84%] flex flex-col relative backdrop-blur-[10px]">
+      <div className="w-full md:ml-[16%] md:w-[84%] flex flex-col relative backdrop-blur-[10px]">
 
         <div className="flex-1 overflow-y-auto overflow-x-hidden p-10 pb-60 flex flex-col gap-6">
 
@@ -387,7 +387,7 @@ export default function Home() {
 
       {/* INPUT */}
 
-      <div className="fixed bottom-8 left-[58%] -translate-x-1/2 w-[60%] z-50">
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] md:w-[60%] md:left-[58%] z-50">
 
         <div className="bg-gray-900 flex rounded-[30px] p-3 items-end shadow-xl">
 
