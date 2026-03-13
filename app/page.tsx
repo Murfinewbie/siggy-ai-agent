@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 export default function Home() {
 
@@ -15,6 +16,64 @@ export default function Home() {
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+const detectImageIntent = (text: string) => {
+
+  const t = text.toLowerCase().trim();
+
+  const commandWords = [
+    "draw",
+    "generate",
+    "create",
+    "make",
+    "paint",
+    "render",
+    "gen",
+    "img"
+  ];
+
+  const imageWords = [
+    "image",
+    "picture",
+    "photo",
+    "art",
+    "illustration",
+    "pic"
+  ];
+
+  const questionWords = [
+    "what","why","how","who","where","when",
+    "can","could","do","does","did","is","are"
+  ];
+
+  const requestPatterns = [
+    "show me",
+    "give me",
+    "draw a",
+    "draw me",
+    "generate",
+    "make an image",
+    "create image"
+  ];
+
+  const isQuestion = questionWords.some(q => t.startsWith(q));
+  if (isQuestion) return false;
+
+  const hasCommand = commandWords.some(w => t.includes(w));
+  const hasImageWord = imageWords.some(w => t.includes(w));
+  const matchPattern = requestPatterns.some(p => t.includes(p));
+
+  if (hasCommand && hasImageWord) return true;
+  if (matchPattern) return true;
+
+  if (t.includes("gen") && t.includes("imag")) return true;
+  if (t.includes("dra") && t.includes("pic")) return true;
+
+  return false;
+
+};
+
   const sendMessage = async () => {
 
     if (!input.trim()) return;
@@ -27,22 +86,7 @@ export default function Home() {
 
     if (textareaRef.current) textareaRef.current.style.height = "40px";
 
-    const imageKeywords = [
-      "image",
-      "draw",
-      "generate",
-      "create",
-      "illustration",
-      "picture",
-      "art",
-      "paint",
-      "render",
-      "show me"
-    ];
-
-    const wantImage = imageKeywords.some(word =>
-      userInput.toLowerCase().includes(word)
-    );
+    const wantImage = detectImageIntent(userInput);
 
     if (wantImage) {
 
@@ -358,7 +402,7 @@ export default function Home() {
             >
 
               <div
-                className={`flex items-end gap-2 max-w-[520px] ${
+                className={`flex items-end gap-2 max-w-[85%] md:max-w-[520px] ${
                   msg.role === "user"
                     ? "ml-auto justify-end"
                     : "justify-start"
@@ -385,11 +429,11 @@ export default function Home() {
 
                   {msg.image && (
                     <img
-                      src={msg.image}
-                      className="rounded-xl max-w-[320px] mt-2"
+                    src={msg.image}
+                     onClick={() => setPreviewImage(msg.image)}
+                    className="rounded-xl max-w-[240px] sm:max-w-[280px] md:max-w-[320px] mt-2 cursor-zoom-in"
                     />
                   )}
-
                   {msg.role === "siggy" && msg.text && (
 
                     <div className="flex gap-3 mt-1 opacity-90">
@@ -516,11 +560,11 @@ export default function Home() {
 
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] md:w-[60%] z-50">
 
-        <div className="bg-gray-900 flex rounded-[30px] p-3 items-end shadow-xl">
+        <div className="bg-gray-900 flex rounded-[30px] p-3 items-end shadow-xl cursor-text">
 
           <textarea
             ref={textareaRef}
-            className="flex-1 bg-transparent resize-none outline-none text-sm max-h-[160px] px-2 py-2.5"
+            className="flex-1 bg-transparent resize-none outline-none text-sm max-h-[160px] px-2 py-2.5 !cursor-text"
             value={input}
             rows={1}
             onChange={handleInput}
@@ -538,7 +582,36 @@ export default function Home() {
         </div>
 
       </div>
+          {previewImage && (
 
+  <div
+    className="fixed inset-0 bg-black/90 flex items-center justify-center z-[999]"
+    onClick={() => setPreviewImage(null)}
+  >
+
+   <TransformWrapper
+  initialScale={1}
+  minScale={0.5}
+  maxScale={6}
+  doubleClick={{ disabled: false }}
+>
+
+  <TransformComponent>
+
+    <img
+      src={previewImage}
+      onClick={(e) => e.stopPropagation()}
+      className="max-w-[95vw] max-h-[95vh] object-contain select-none"
+      draggable={false}
+    />
+
+  </TransformComponent>
+
+</TransformWrapper>
+
+  </div>
+
+)}
     </main>
 
   );
