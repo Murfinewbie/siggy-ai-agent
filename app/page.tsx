@@ -27,6 +27,68 @@ export default function Home() {
 
     if (textareaRef.current) textareaRef.current.style.height = "40px";
 
+    const imageKeywords = [
+      "image",
+      "draw",
+      "generate",
+      "create",
+      "illustration",
+      "picture",
+      "art",
+      "paint",
+      "render",
+      "show me"
+    ];
+
+    const wantImage = imageKeywords.some(word =>
+      userInput.toLowerCase().includes(word)
+    );
+
+    if (wantImage) {
+
+      setIsTyping(true);
+
+      try {
+
+        const prompt = userInput
+          .replace(/image|draw|generate|create|illustration|picture|art|paint|render|show me/gi, "")
+          .trim();
+
+        const res = await fetch(
+          "https://siggy-image-ai.iniakunsv.workers.dev",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ prompt })
+          }
+        );
+
+        const blob = await res.blob();
+        const imageUrl = URL.createObjectURL(blob);
+
+        setIsTyping(false);
+
+        setMessages((prev) => [
+          ...prev,
+          { role: "siggy", text: "", image: imageUrl, prompt }
+        ]);
+
+      } catch {
+
+        setIsTyping(false);
+
+        setMessages((prev) => [
+          ...prev,
+          { role: "siggy", text: "Image generation failed." }
+        ]);
+
+      }
+
+      return;
+    }
+
     setIsTyping(true);
 
     try {
@@ -62,6 +124,46 @@ export default function Home() {
       setMessages((prev) => [
         ...prev,
         { role: "siggy", text: "Siggy lost connection..." }
+      ]);
+
+    }
+
+  };
+
+  const retryImage = async (prompt:string) => {
+
+    setIsTyping(true);
+
+    try {
+
+      const res = await fetch(
+        "https://siggy-image-ai.iniakunsv.workers.dev",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ prompt })
+        }
+      );
+
+      const blob = await res.blob();
+      const imageUrl = URL.createObjectURL(blob);
+
+      setIsTyping(false);
+
+      setMessages((prev) => [
+        ...prev,
+        { role: "siggy", text: "", image: imageUrl, prompt }
+      ]);
+
+    } catch {
+
+      setIsTyping(false);
+
+      setMessages((prev) => [
+        ...prev,
+        { role: "siggy", text: "Image retry failed." }
       ]);
 
     }
@@ -104,20 +206,22 @@ export default function Home() {
   const voices = window.speechSynthesis.getVoices();
 
   const femaleVoice =
-    voices.find(v => v.name.includes("Female")) ||
     voices.find(v => v.name.includes("Google UK English Female")) ||
+    voices.find(v => v.name.includes("Samantha")) ||
+    voices.find(v => v.name.includes("Victoria")) ||
+    voices.find(v => v.name.includes("Karen")) ||
+    voices.find(v => v.name.includes("Zira")) ||
     voices[0];
 
   speech.voice = femaleVoice;
 
   speech.lang = "en-US";
 
-  // suara
-  speech.pitch = 0.8;  
-  speech.rate = 1;   
-  speech.volume = 1;
+  speech.pitch = 1.6;
+  speech.rate = 1.1;
+  speech.volume = 1.2;
 
-  window.speechSynthesis.cancel(); // stop suara 
+  window.speechSynthesis.cancel();
   window.speechSynthesis.speak(speech);
 
 };
@@ -231,42 +335,18 @@ export default function Home() {
       }}
     >
 
-      {/* SIDEBAR */}
-
-      <div
-         className="hidden md:block fixed left-0 top-0 h-screen w-[16%] bg-cover bg-center z-40"
-        style={{
-          backgroundImage: "url('/sidebar.png')"
-        }}
-      >
-
-        <div className="absolute inset-0 backdrop-blur-[6px] bg-black/30"></div>
-
-        <div className="relative p-15">
-
-          <div className="text-base leading-relaxed whitespace-pre-line text-gray-200">
-            {`Hi, I’m Siggy
-              Your AI companion 
-              for ideas, 
-              answers, 
-              and conversations.
-
-              Ask anything, 
-              explore freely, 
-              let curiosity lead the way.
-
-              Let’s start the conversation.`}
-            </div>
-
+      {/* TOP BAR */}
+      <div className="fixed top-0 left-0 w-full h-[70px] bg-black/40 backdrop-blur-md border-b border-white/10 flex items-center justify-center z-50">
+        <div className="flex items-center gap-3">
+          <h1 className="text-lg md:text-xl font-semibold tracking-wide text-[#02a656]">
+            Siggy<span className="text-white">, The Keeper of Ritual</span>
+          </h1>
         </div>
-
       </div>
 
-      {/* CHAT */}
+      <div className="w-full flex flex-col relative backdrop-blur-[10px]">
 
-      <div className="w-full md:ml-[16%] md:w-[84%] flex flex-col relative backdrop-blur-[10px]">
-
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-10 pb-60 flex flex-col gap-6">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-10 pt-24 pb-60 flex flex-col gap-6">
 
           {messages.map((msg, i) => (
 
@@ -303,7 +383,14 @@ export default function Home() {
 
                   <div>{msg.text}</div>
 
-                  {msg.role === "siggy" && (
+                  {msg.image && (
+                    <img
+                      src={msg.image}
+                      className="rounded-xl max-w-[320px] mt-2"
+                    />
+                  )}
+
+                  {msg.role === "siggy" && msg.text && (
 
                     <div className="flex gap-3 mt-1 opacity-90">
 
@@ -353,6 +440,48 @@ export default function Home() {
 
                   )}
 
+                  {msg.image && (
+
+                    <div className="flex gap-3 mt-1 opacity-90">
+
+                      {!dislikedMessages.includes(i) && (
+                      <button onClick={() => toggleLike(i)}>
+                        <img
+                          src={
+                            likedMessages.includes(i)
+                              ? "/icons/liked.png"
+                              : "/icons/like.png"
+                          }
+                          className="w-8 hover:scale-110"
+                        />
+                      </button>
+                      )}
+
+                      {!likedMessages.includes(i) && (
+                      <button onClick={() => toggleDislike(i)}>
+                        <img
+                          src={
+                            dislikedMessages.includes(i)
+                              ? "/icons/disliked.png"
+                              : "/icons/dislike.png"
+                          }
+                          className="w-8 hover:scale-110"
+                        />
+                      </button>
+                      )}
+
+                      <button onClick={() => shareText(msg.image)}>
+                        <img src="/icons/share.png" className="w-8 hover:scale-110"/>
+                      </button>
+
+                      <button onClick={() => retryImage(msg.prompt)}>
+                        <img src="/icons/retry.png" className="w-8 hover:scale-110"/>
+                      </button>
+
+                    </div>
+
+                  )}
+
                 </div>
 
               </div>
@@ -385,9 +514,7 @@ export default function Home() {
 
       </div>
 
-      {/* INPUT */}
-
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] md:w-[60%] md:left-[58%] z-50">
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] md:w-[60%] z-50">
 
         <div className="bg-gray-900 flex rounded-[30px] p-3 items-end shadow-xl">
 
